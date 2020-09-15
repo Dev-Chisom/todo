@@ -1,101 +1,51 @@
-const clear = document.querySelector('.clear');
-const dateElement = document.getElementById('date');
-const list = document.getElementById('list');
-const input = document.getElementById("input");
-
-const CHECK = "fa-check-circle";
-const UNCHECK = "fa-circle-thin";
-const LINE_THROUGH = "lineThrough";
-
-let LIST, id;
-
-let data = localStorage.getItem("TODO");
-
-if (data) {
-    LIST = JSON.parse(data);
-    id = LIST.length;
-    loadList(LIST);
-} else {
-    LIST = [];
-    id = 0;
-}
-
-function loadList(array){
-    addToDo(item.name, iterm.id, item.done, item.trash);
-}
+const addForm = document.querySelector('.add');
+const list = document.querySelector('.todos');
+const search = document.querySelector('.search input')
 
 
-const options = {eekday:"long", month:"short", day:"numeric"}
-const today = new Date();
+const generateTemplate = todo => {
 
-dateElement.innerHTML = today.toLocaleDateString("en-US", options);
-
-
-function addToDo(todo, id, done, trash ){
-
-    if(trash){return;}
-
-    const Done = done ? CHECK : UNCHECK;
-    const LINE = done ? LINE_THROUGH : "";
-
-    const item = `
-    <li class="item">
-    <i class="fa co" job="complete" id="${id}"></i>
-    <p class="text">${toDo}</p>
-    <i class="fa fa-trash-o do" job="delete" id="${id}"></i>
-    </li>
+    const html = `
+     <li class="list-group-item d-flex justify-content-between align-items-center">
+       <span>${todo}</span>
+       <i class="far fa-trash-alt delete"></i>
+     </li> 
     `;
-    const postion = "beforeend";
 
-    list.insertAdjacentHTML(position,item);
-}
+    list.innerHTML += html;
+};
 
-document.addEventListener("keyup",function(even){
-    if(event.keyCode == 13){
-        const toDo = input.nodeValue;
-        if(toDo){
-            addToDo(toDo, id, false, false);
-        }
-        LIST.push({
-            name : toDo,
-            id : id,
-            done : false,
-            trash : false
-        })
+addForm.addEventListener('submit', e => {
 
-        localStorage.setItem("TODO", JSON.stringify(LIST));
+    e.preventDefault();
+    const todo = addForm.add.value.trim();
 
-        id++;
-    }
-    input.value = "";
+    if(todo.length){
+    generateTemplate(todo);
+    addForm.reset();
+  }
 });
 
-function completeToDo (element){
-    element.classList.toggle(CHECK);
-    element.classList.toggle(UNCHECK);
-    element.parentNode.querySelector(".text").classList.toggle(LINE_THROUGH);
+list.addEventListener('click', e => {
 
-    LIST[element.id].done = LIST[element.id].done ? false : true;
-}
-
-function removeToDo(element){
-    element.parentNode.parentNode.removeChild(element.parentNode);
-
-    LIST[element.id].trash = true;
-}
-
-list.addEventListener('click', function(event){
-    const element = event.target;
-    const elementJob = element.attributes.job.value;
-
-    if(elementJob == "complete"){
-        completeToDo(element);
-        
-    }else if(elementJob == "delete"){
-        removeToDo(element);
+    if(e.target.classList.contains('delete')){
+        e.target.parentElement.remove();
     }
 
-    localStorage.setItem("TODO", JSON.stringify(LIST));
 });
 
-addToDo("Coffee", 1, false, true);
+const filterTodos = (term) => {
+
+    Array.from(list.children)
+    .filter((todo) => !todo.textContent.toLowerCase().includes(term))
+    .forEach((todo) => todo.classList.add('filtered'));
+
+    Array.from(list.children)
+    .filter((todo) => todo.textContent.toLowerCase().includes(term))
+    .forEach((todo) => todo.classList.remove('filtered'));
+};
+
+search.addEventListener('keyup', () => {
+    const term = search.value.trim().toLowerCase();
+    filterTodos(term);
+});
